@@ -1,6 +1,7 @@
 import "./App.css";
 import React, { useState, useEffect } from "react";
 import styled from "styled-components";
+import ClassComponent from "./classComponent";
 
 const Container = styled.div`
   width: 1280px;
@@ -46,21 +47,19 @@ function App() {
 
   const handleSearch = e => {
     updateSearch(e.target.value);
-
-    const filteredEmpl = employees.filter(empl =>
-      empl.employee_name.toLowerCase().includes(searchValue.toLowerCase())
-    );
-
-    console.log(filteredEmpl);
-    updateEmployees(filteredEmpl);
   };
+
+  const filteredEmpl = employees.filter(empl => {
+    return empl.employee_name.toLowerCase().includes(searchValue.toLowerCase());
+  });
 
   return (
     <Container>
       <TopHeader>
+        <div></div>
         <div>
-          Total employees: <strong>{employees.length}</strong>
-          <strong>{searchValue}</strong>
+          Total employees: <strong>{employees.length}</strong> Filtered
+          employees: <strong>{filteredEmpl.length}</strong>
         </div>
         <div>
           <input
@@ -82,7 +81,7 @@ function App() {
           </tr>
         </thead>
         <tbody>
-          {employees.map(employee => (
+          {filteredEmpl.map(employee => (
             <tr key={employee.id}>
               <td>{employee.id}</td>
               <td>{employee.employee_name}</td>
