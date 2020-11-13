@@ -65,7 +65,7 @@ function App() {
     } else {
       return employees.filter(filterEmployees);
     }
-  }, [employees, searchValue, nameSort, idSort, salarySort, ageSort]);
+  }, [employees, searchValue]);
 
   //Get value from search input field
   const handleSearch = e => {
