@@ -1,7 +1,6 @@
 import "./App.css";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import styled from "styled-components";
-import ClassComponent from "./classComponent";
 
 const Container = styled.div`
   width: 1280px;
@@ -11,6 +10,10 @@ const Container = styled.div`
     text-align: left;
     padding: 10px;
     background: #f5f5f5;
+    cursor: pointer;
+    :hover {
+      background: #ddd;
+    }
   }
   td {
     border-bottom: 1px solid #f5f5f5;
@@ -29,34 +32,94 @@ const TopHeader = styled.div`
 
 function App() {
   const [employees, updateEmployees] = useState([]);
+  const [searchValue, updateSearch] = useState("");
+  const [nameSort, updateNameSort] = useState(false);
+  const [idSort, updateIdSort] = useState(false);
+  const [salarySort, updateSalarySort] = useState(false);
+  const [ageSort, updateAgeSort] = useState(false);
 
-  if (employees == 0) {
-    document.title = "Loading...";
-  }
-
+  //Fetching data from API
   useEffect(() => {
     fetch("http://dummy.restapiexample.com/api/v1/employees")
       .then(res => res.json())
       .then(result => {
         updateEmployees(result.data);
-        document.title = `Total: ${result.data.length} `;
       });
   }, []);
 
-  const [searchValue, updateSearch] = useState("");
+  //Dynamically changing page title
+  useEffect(() => {
+    document.title = !employees.length
+      ? "Loading..."
+      : `Total: ${employees.length}`;
+    console.log(employees);
+  }, [employees]);
 
+  const filteredEmpl = useMemo(() => {
+    const filterEmployees = empl =>
+      empl.employee_name.toLowerCase().includes(searchValue.toLowerCase());
+
+    //If nothing is typed in search return initial array
+    if (!searchValue) {
+      return employees;
+    } else {
+      return employees.filter(filterEmployees);
+    }
+  }, [employees, searchValue, nameSort, idSort, salarySort, ageSort]);
+
+  //Get value from search input field
   const handleSearch = e => {
     updateSearch(e.target.value);
   };
 
-  const filteredEmpl = employees.filter(empl => {
-    return empl.employee_name.toLowerCase().includes(searchValue.toLowerCase());
-  });
+  //Sort by id
+  const idSorting = () => {
+    updateIdSort(!idSort);
+
+    const idSortingAsc = (a, b) => (a.id > b.id ? 1 : -1);
+    const idSortingDsc = (a, b) => (a.id > b.id ? -1 : 1);
+
+    !idSort ? employees.sort(idSortingDsc) : employees.sort(idSortingAsc);
+  };
+
+  //Sort by name
+  const nameSorting = () => {
+    updateNameSort(!nameSort);
+
+    const nameSortingAsc = (a, b) =>
+      a.employee_name > b.employee_name ? 1 : -1;
+    const nameSortingDsc = (a, b) =>
+      a.employee_name > b.employee_name ? -1 : 1;
+
+    !nameSort ? employees.sort(nameSortingAsc) : employees.sort(nameSortingDsc);
+  };
+
+  //Sort by salary
+  const salarySorting = () => {
+    updateSalarySort(!salarySort);
+
+    const salarySortingAsc = (a, b) =>
+      a.employee_salary > b.employee_salary ? 1 : -1;
+    const salarySortingDsc = (a, b) =>
+      a.employee_salary > b.employee_salary ? -1 : 1;
+
+    !salarySort
+      ? employees.sort(salarySortingAsc)
+      : employees.sort(salarySortingDsc);
+  };
+
+  //Sort by age
+  const ageSorting = () => {
+    updateAgeSort(!ageSort);
+    const ageSortingAsc = (a, b) => (a.employee_age > b.employee_age ? 1 : -1);
+    const ageSortingDsc = (a, b) => (a.employee_age > b.employee_age ? -1 : 1);
+
+    !ageSort ? employees.sort(ageSortingAsc) : employees.sort(ageSortingDsc);
+  };
 
   return (
     <Container>
       <TopHeader>
-        <div></div>
         <div>
           Total employees: <strong>{employees.length}</strong> Filtered
           employees: <strong>{filteredEmpl.length}</strong>
@@ -71,26 +134,30 @@ function App() {
         </div>
       </TopHeader>
 
-      <table style={{ width: "100%" }}>
-        <thead>
-          <tr>
-            <th>id</th>
-            <th>Employee name</th>
-            <th>Employee salary</th>
-            <th>Employee age</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredEmpl.map(employee => (
-            <tr key={employee.id}>
-              <td>{employee.id}</td>
-              <td>{employee.employee_name}</td>
-              <td>{employee.employee_salary}</td>
-              <td>{employee.employee_age}</td>
+      {employees ? (
+        <table style={{ width: "100%" }}>
+          <thead>
+            <tr>
+              <th onClick={idSorting}>id</th>
+              <th onClick={nameSorting}>Employee name</th>
+              <th onClick={salarySorting}>Employee salary</th>
+              <th onClick={ageSorting}>Employee age</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {filteredEmpl.map(employee => (
+              <tr key={employee.id}>
+                <td>{employee.id}</td>
+                <td>{employee.employee_name}</td>
+                <td>{employee.employee_salary}</td>
+                <td>{employee.employee_age}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      ) : (
+        <div>Loading...</div>
+      )}
     </Container>
   );
 }
